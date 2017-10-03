@@ -1,0 +1,10 @@
+eyespots
+ears
+arms
+legs
+tail
+ears
+fluid
+ability
+size
+skin

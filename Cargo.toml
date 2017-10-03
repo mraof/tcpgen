@@ -1,0 +1,27 @@
+[package]
+name = "tcpgen"
+version = "0.1.0"
+authors = ["mraof <mraof@mraof.com>"]
+
+[[bin]]
+name = "tcpgen"
+path = "src/console.rs"
+
+[[bin]]
+name = "web"
+path = "src/web.rs"
+
+[dependencies]
+rand = "*"
+walkdir = "*"
+#Make these just dependencies of web when that's actually possible
+iron = {version = "*", optional = true}
+url = {version = "*", optional = true}
+mime = {version = "*", optional = true}
+image = {version = "*", optional = true}
+
+[profile.release]
+lto = true
+
+[features]
+web = ["iron", "url", "mime", "image"]
