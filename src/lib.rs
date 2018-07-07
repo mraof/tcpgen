@@ -178,7 +178,7 @@ impl TCPList {
 
     pub fn gen(&self) -> TCP {
         let mut random = rand::thread_rng();
-        let designer = random.gen_weighted_bool(4);
+        let designer = random.gen_bool(0.25);
         if random.next_u32() & 1 == 0 {
             let list = self.types
                 .iter()
@@ -224,9 +224,9 @@ impl TCPList {
             }
             TCP {
                 types,
-                conditions: rand::sample(&mut random, self.conditions.clone(), condition_count),
-                modifiers: rand::sample(&mut random, self.modifiers.clone(), modifier_count),
-                anomalies: rand::sample(&mut random, self.anomalies.clone(), anomaly_count),
+                conditions: rand::seq::sample_iter(&mut random, self.conditions.clone(), condition_count).unwrap(),
+                modifiers: rand::seq::sample_iter(&mut random, self.modifiers.clone(), modifier_count).unwrap(),
+                anomalies: rand::seq::sample_iter(&mut random, self.anomalies.clone(), anomaly_count).unwrap(),
                 designer,
             }
         }
