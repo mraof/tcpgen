@@ -10,6 +10,7 @@ path = "src/console.rs"
 [[bin]]
 name = "web"
 path = "src/web.rs"
+required-features = ["web"]
 
 [dependencies]
 rand = "*"

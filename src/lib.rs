@@ -2,13 +2,14 @@ extern crate rand;
 extern crate walkdir;
 use std::io::{BufRead, BufReader};
 use rand::Rng;
+use rand::RngCore;
 use walkdir::WalkDir;
 use std::fs::File;
-use std::collections::{HashSet, HashMap};
+use std::collections::{BTreeSet, BTreeMap};
 
 #[derive(Debug, Default)]
 pub struct TCPList {
-    pub types: HashMap<TCPType, Vec<String>>,
+    pub types: BTreeMap<TCPType, Vec<String>>,
     pub conditions: Vec<String>,
     pub modifiers: Vec<String>,
     pub anomalies: Vec<String>,
@@ -45,7 +46,7 @@ impl Display for TCP {
     }
 }
 
-#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash)]
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Ord, PartialOrd)]
 pub enum TCPType {
     Abstract,
     Body,
@@ -117,10 +118,10 @@ impl<'a> From<&'a str> for TCPType {
 
 impl TCPList {
     pub fn new(root: &str) -> TCPList {
-        let mut types = HashMap::new();
-        types.insert(Unknown, Vec::new());
+        let mut types = BTreeMap::new();
+        types.insert(Unknown, BTreeSet::new());
         let mut lists = Vec::new();
-        let mut set = HashSet::new();
+        let mut set = BTreeSet::new();
         for path in WalkDir::new(&format!("{}/{}", root,"types")) {
             let path = path.unwrap();
             let path = path.path();
@@ -129,15 +130,16 @@ impl TCPList {
                 let mut lines = BufReader::new(&file).lines();
                 let mut current_type = TCPType::Unknown;
                 while let Some(Ok(line)) = lines.next() {
+                    let line = line.trim().to_string();
                     if !line.is_empty() {
                         if line.as_bytes()[0] == b'#' {
                             current_type = TCPType::from(&line[1..]);
                             if !types.contains_key(&current_type) {
-                                types.insert(current_type, Vec::new());
+                                types.insert(current_type, BTreeSet::new());
                             }
                         } else if !set.contains(&line) {
                             set.insert(line.clone());
-                            types.get_mut(&current_type).unwrap().push(line);
+                            types.get_mut(&current_type).unwrap().insert(line);
                         }
                     }
                 }
@@ -149,7 +151,7 @@ impl TCPList {
         }
 
         for dir in &["conditions", "modifiers", "anomalies"] {
-            let mut set = HashSet::new();
+            let mut set = BTreeSet::new();
             for path in WalkDir::new(&format!("{}/{}", root, dir)) {
                 let path = path.unwrap();
                 let path = path.path();
@@ -157,6 +159,7 @@ impl TCPList {
                     let file = File::open(path).expect(&format!("Couldn't read {:?}", path));
                     let mut lines = BufReader::new(&file).lines();
                     while let Some(Ok(line)) = lines.next() {
+                        let line = line.trim().to_string();
                         if !line.is_empty() {
                             set.insert(line);
                         }
@@ -166,7 +169,7 @@ impl TCPList {
             lists.push(set.into_iter().collect());
         }
         TCPList {
-            types,
+            types: types.into_iter().map(|(key, value)| (key, value.into_iter().collect())).collect(),
             conditions: lists.remove(0),
             modifiers: lists.remove(0),
             anomalies: lists.remove(0),
@@ -208,7 +211,7 @@ impl TCPList {
                 }
             }
             let mut types = Vec::new();
-            let mut type_map = HashMap::new();
+            let mut type_map = BTreeMap::new();
             for _ in 0..type_count {
                 let (tcp_type, list) = self.types
                     .iter()

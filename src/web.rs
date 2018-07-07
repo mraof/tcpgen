@@ -132,7 +132,7 @@ fn main() {
                 if request.url.query().is_some() {
                     let mut buffer = image::load_from_memory_with_format(&data, image::PNG).unwrap().to_rgba();
                     let (width, height) = buffer.dimensions();
-                    for (x, y, mut pixel) in buffer.enumerate_pixels_mut() {
+                    for (x, y, pixel) in buffer.enumerate_pixels_mut() {
                         let x = width as f32 / 2.0 - x as f32;
                         let y = height as f32 / 2.0 - y as f32;
                         let angle0 = x.atan2(y) * 180.0 / std::f32::consts::PI + 360.0;
