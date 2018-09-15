@@ -1,5 +1,6 @@
 extern crate rand;
 extern crate walkdir;
+
 use std::io::{BufRead, BufReader};
 use rand::Rng;
 use rand::RngCore;
@@ -17,7 +18,7 @@ pub struct TCPList {
 
 #[derive(Debug, Default)]
 pub struct TCP {
-    pub types: Vec<String>,
+    pub types: Vec<(TCPType, String)>,
     pub conditions: Vec<String>,
     pub modifiers: Vec<String>,
     pub anomalies: Vec<String>,
@@ -29,7 +30,7 @@ impl Display for TCP {
         if self.designer {
             fmt.write_str("designer ")?;
         }
-        fmt.write_str(&self.types.join("/"))?;
+        fmt.write_str(&self.types.iter().map(|(category, name)| format!("{}{}", category.get_emoji(), name)).collect::<Vec<_>>().join("/"))?;
         if self.conditions.len() > 0 {
             fmt.write_str(", conditions: ")?;
             fmt.write_str(&self.conditions.join(", "))?;
@@ -62,22 +63,40 @@ pub enum TCPType {
 
 use TCPType::{Abstract, Body, Creature, Food, Machine, Nature, Form, Storage, Weapon, Unknown};
 
+impl TCPType {
+    fn get_emoji(&self) -> &'static str {
+        match self {
+            Abstract => "🎭",
+            Body => "👁️",
+            Creature => "🐈",
+            Food => "🌶",
+            Machine => "⚙️",
+            Nature => "☁️",
+            Form => "⚪",
+            Storage => "📦",
+            Weapon => "🗡️",
+            Unknown => "❓",
+        }
+    }
+}
+
 use std::fmt::Display;
 use std::fmt::Formatter;
+
 impl Display for TCPType {
     fn fmt(&self, formatter: &mut Formatter) -> std::fmt::Result {
         Display::fmt(match *self {
-                         Abstract => "Abstract",
-                         Body => "Body",
-                         Creature => "Creature",
-                         Food => "Food",
-                         Machine => "Machine",
-                         Nature => "Nature",
-                         Form => "Form",
-                         Storage => "Storage",
-                         Weapon => "Weapon",
-                         Unknown => "Unknown",
-                     },
+            Abstract => "Abstract",
+            Body => "Body",
+            Creature => "Creature",
+            Food => "Food",
+            Machine => "Machine",
+            Nature => "Nature",
+            Form => "Form",
+            Storage => "Storage",
+            Weapon => "Weapon",
+            Unknown => "Unknown",
+        },
                      formatter)
     }
 }
@@ -122,7 +141,7 @@ impl TCPList {
         types.insert(Unknown, BTreeSet::new());
         let mut lists = Vec::new();
         let mut set = BTreeSet::new();
-        for path in WalkDir::new(&format!("{}/{}", root,"types")) {
+        for path in WalkDir::new(&format!("{}/{}", root, "types")) {
             let path = path.unwrap();
             let path = path.path();
             if path.is_file() {
@@ -180,14 +199,13 @@ impl TCPList {
         let mut random = rand::thread_rng();
         let designer = random.gen_bool(0.25);
         if random.next_u32() & 1 == 0 {
-            let list = self.types
+            let (tcp_type, list) = self.types
                 .iter()
                 .skip(random.next_u32() as usize % self.types.len())
                 .next()
-                .unwrap()
-                .1;
+                .unwrap();
             TCP {
-                types: vec![random.choose(list).unwrap().clone()],
+                types: vec![(*tcp_type, random.choose(list).unwrap().clone())],
                 designer,
                 ..Default::default()
             }
@@ -220,7 +238,7 @@ impl TCPList {
                     .unwrap();
                 let list = type_map.entry(tcp_type).or_insert_with(|| list.clone());
                 let index = random.next_u32() as usize % list.len();
-                types.push(list.swap_remove(index));
+                types.push((*tcp_type, list.swap_remove(index)));
             }
             TCP {
                 types,

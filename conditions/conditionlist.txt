@@ -1,4 +1,4 @@
-realized
+ravenous
 shred-merged
 scrap-merged
 horror-exposed
@@ -7,7 +7,6 @@ infested
 decay
 colossal
 digital
-blooming
 faux
 grafted
 nullified
