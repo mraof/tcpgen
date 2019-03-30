@@ -1,6 +1,5 @@
 #machine
 lamp
-banner
 engine
 computer
 robot

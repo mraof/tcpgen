@@ -4,6 +4,6 @@ fractal
 fluff
 jigsaw
 asymmetry
-wire (form)
+wire
 bisection
 dadaism

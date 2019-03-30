@@ -28,7 +28,7 @@ solid
 gaseous
 plasma
 atmospheric
-artificially_flavored
+artificially flavored
 sickly
 charismatic
 energized
@@ -109,7 +109,6 @@ rubbery
 flat
 tactile
 wavy
-curvy
 curly
 slotted
 soft
@@ -117,12 +116,11 @@ hard
 fluffy
 fuzzy
 wiry
-purebred
 mongrel
 prickly
 boney
-long_haired
-short_haired
+long haired
+short haired
 bubbly
 fizzy
 sandy

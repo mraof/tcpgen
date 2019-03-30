@@ -6,6 +6,6 @@ mitosis
 decay
 hunger
 growth
-humor (body)
+humor
 amalgam
 hypochondria

@@ -1,11 +1,12 @@
 extern crate rand;
 extern crate walkdir;
+extern crate core;
 
 use std::io::{BufRead, BufReader};
 use rand::Rng;
 use rand::RngCore;
 use walkdir::WalkDir;
-use std::fs::File;
+use std::fs::{File, write};
 use std::collections::{BTreeSet, BTreeMap};
 
 #[derive(Debug, Default)]
@@ -20,7 +21,7 @@ pub struct TCPList {
 pub struct TCP {
     pub types: Vec<(TCPType, String)>,
     pub conditions: Vec<String>,
-    pub modifiers: Vec<String>,
+    pub modifiers: Vec<(String, Tier)>,
     pub anomalies: Vec<String>,
     pub designer: bool,
 }
@@ -41,7 +42,7 @@ impl Display for TCP {
         }
         if self.modifiers.len() > 0 {
             fmt.write_str(", modifiers: ")?;
-            fmt.write_str(&self.modifiers.join(", "))?;
+            fmt.write_str(&self.modifiers.iter().map(|(modifier, tier)| format!("{} ({})", modifier, tier)).collect::<Vec<_>>().join(", "))?;
         }
         Ok(())
     }
@@ -77,6 +78,34 @@ impl TCPType {
             Weapon => "🗡️",
             Unknown => "❓",
         }
+    }
+}
+
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Ord, PartialOrd)]
+pub enum Tier {
+    Minor,
+    Intermediate,
+    Major,
+}
+
+impl Tier {
+    fn gen<R: Rng>(random: &mut R) -> Tier {
+        match random.gen_range(0, 3) {
+            0 => Tier::Minor,
+            1 => Tier::Intermediate,
+            2 => Tier::Major,
+            _ => unreachable!()
+        }
+    }
+}
+
+impl Display for Tier {
+    fn fmt(&self, f: &mut Formatter) -> std::fmt::Result {
+        write!(f, "{}", match &self {
+            Tier::Minor => "minor",
+            Tier::Intermediate => "intermediate",
+            Tier::Major => "major",
+        })
     }
 }
 
@@ -240,10 +269,11 @@ impl TCPList {
                 let index = random.next_u32() as usize % list.len();
                 types.push((*tcp_type, list.swap_remove(index)));
             }
+            let modifiers: Vec<(String, Tier)> = rand::seq::sample_iter(&mut random, self.modifiers.clone(), modifier_count).unwrap().into_iter().map(|string| (string, Tier::gen(&mut random))).collect();
             TCP {
                 types,
                 conditions: rand::seq::sample_iter(&mut random, self.conditions.clone(), condition_count).unwrap(),
-                modifiers: rand::seq::sample_iter(&mut random, self.modifiers.clone(), modifier_count).unwrap(),
+                modifiers,
                 anomalies: rand::seq::sample_iter(&mut random, self.anomalies.clone(), anomaly_count).unwrap(),
                 designer,
             }

@@ -4,7 +4,6 @@ void
 time
 space
 sound
-sex
 power
 rivalry
 party

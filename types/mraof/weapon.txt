@@ -2,4 +2,4 @@
 dice
 branding iron
 flyswatter
-wire (weapon)
+wire
