@@ -22,7 +22,7 @@ pub struct TCP {
     pub types: Vec<(TCPType, String)>,
     pub conditions: Vec<String>,
     pub modifiers: Vec<(String, Tier)>,
-    pub anomalies: Vec<String>,
+    pub anomalies: Vec<(String, Tier)>,
     pub designer: bool,
 }
 
@@ -38,7 +38,7 @@ impl Display for TCP {
         }
         if self.anomalies.len() > 0 {
             fmt.write_str(", anomalies: ")?;
-            fmt.write_str(&self.anomalies.join(", "))?;
+            fmt.write_str(&self.anomalies.iter().map(|(anomaly, tier)| format!("{} ({})", anomaly, tier)).collect::<Vec<_>>().join(", "))?;
         }
         if self.modifiers.len() > 0 {
             fmt.write_str(", modifiers: ")?;
@@ -270,11 +270,12 @@ impl TCPList {
                 types.push((*tcp_type, list.swap_remove(index)));
             }
             let modifiers: Vec<(String, Tier)> = rand::seq::sample_iter(&mut random, self.modifiers.clone(), modifier_count).unwrap().into_iter().map(|string| (string, Tier::gen(&mut random))).collect();
+            let anomalies: Vec<(String, Tier)> = rand::seq::sample_iter(&mut random, self.anomalies.clone(), anomaly_count).unwrap().into_iter().map(|string| (string, Tier::gen(&mut random))).collect();
             TCP {
                 types,
                 conditions: rand::seq::sample_iter(&mut random, self.conditions.clone(), condition_count).unwrap(),
                 modifiers,
-                anomalies: rand::seq::sample_iter(&mut random, self.anomalies.clone(), anomaly_count).unwrap(),
+                anomalies,
                 designer,
             }
         }
