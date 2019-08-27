@@ -5,8 +5,9 @@ extern crate core;
 use std::io::{BufRead, BufReader};
 use rand::Rng;
 use rand::RngCore;
+use rand::seq::SliceRandom;
 use walkdir::WalkDir;
-use std::fs::{File, write};
+use std::fs::File;
 use std::collections::{BTreeSet, BTreeMap};
 
 #[derive(Debug, Default)]
@@ -234,7 +235,7 @@ impl TCPList {
                 .next()
                 .unwrap();
             TCP {
-                types: vec![(*tcp_type, random.choose(list).unwrap().clone())],
+                types: vec![(*tcp_type, list.choose(&mut random).unwrap().clone())],
                 designer,
                 ..Default::default()
             }
@@ -269,11 +270,11 @@ impl TCPList {
                 let index = random.next_u32() as usize % list.len();
                 types.push((*tcp_type, list.swap_remove(index)));
             }
-            let modifiers: Vec<(String, Tier)> = rand::seq::sample_iter(&mut random, self.modifiers.clone(), modifier_count).unwrap().into_iter().map(|string| (string, Tier::gen(&mut random))).collect();
-            let anomalies: Vec<(String, Tier)> = rand::seq::sample_iter(&mut random, self.anomalies.clone(), anomaly_count).unwrap().into_iter().map(|string| (string, Tier::gen(&mut random))).collect();
+            let modifiers: Vec<(String, Tier)> = self.modifiers.choose_multiple(&mut random, modifier_count).map(|string| (string.clone(), Tier::gen(&mut random))).collect();
+            let anomalies: Vec<(String, Tier)> = self.anomalies.choose_multiple(&mut random, anomaly_count).map(|string| (string.clone(), Tier::gen(&mut random))).collect();
             TCP {
                 types,
-                conditions: rand::seq::sample_iter(&mut random, self.conditions.clone(), condition_count).unwrap(),
+                conditions: self.conditions.choose_multiple(&mut random, condition_count).cloned().collect(),
                 modifiers,
                 anomalies,
                 designer,
